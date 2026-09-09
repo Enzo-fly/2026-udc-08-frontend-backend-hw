@@ -76,11 +76,12 @@ reviews:
 
     - path: "app/test/**"
       instructions: |
-        Task C вимагає тест, який СТАВИТЬ ПИТАННЯ АВТОРИЗАЦІЇ: один користувач
-        не має прочитати/змінити чуже. Перевір, що такий тест зʼявився і що він
-        справді падав би до фіксу (тобто перевіряє чужий ресурс, а не свій).
-        Дев'ять засіяних тестів мали лишитись зеленими. Тести лише на happy
-        path — саме та проблема, про яку воркшоп; познач як ⚠️.
+        Task C вимагає тест, який СТАВИТЬ ПИТАННЯ АВТОРИЗАЦІЇ НА ЧИТАННІ: один
+        користувач не має ПРОЧИТАТИ чужу нотатку. УВАГА: у засіяному наборі вже
+        є крос-юзерний тест на видалення (`will not delete someone else's note`)
+        — його наявності НЕ досить, він був зелений і до фіксу. Потрібен новий
+        тест саме на читання чужого ресурсу, який падав би на коді до правки.
+        Дев'ять засіяних тестів мали лишитись зеленими.
 
     - path: "app/public/**"
       instructions: |
@@ -157,10 +158,12 @@ reviews:
         name: "Task C — test asks the authz question"
         instructions: >
           Static review only — do NOT run tests. Check app/test/ gained a test
-          where one user attempts to read or modify ANOTHER user's note and is
-          refused. A test that only exercises the caller's own data does not
-          count, because the seeded suite already passes with the flaw open.
-          PASS if such a test exists; FAIL otherwise.
+          where one user attempts to READ another user's note and is refused.
+          The seeded suite already contains a cross-user DELETE test
+          ("will not delete someone else's note") — pointing at that one does
+          NOT count, it was green before the fix too. A test that only exercises
+          the caller's own data does not count either. PASS only if a new test
+          covers the read path; FAIL otherwise.
 
       - mode: "warning"
         name: "Task D — AI mistakes with evidence"
