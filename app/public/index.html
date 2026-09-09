@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="uk">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Нотатки — UDC WS8</title>
+    <link rel="stylesheet" href="./style.css" />
+  </head>
+  <body>
+    <header>
+      <h1>Нотатки</h1>
+      <label>
+        Я увійшов як
+        <select id="user">
+          <option value="1">Оля</option>
+          <option value="2">Тарас</option>
+        </select>
+      </label>
+    </header>
+
+    <form id="new-note">
+      <input id="title" placeholder="Заголовок" required />
+      <input id="body" placeholder="Текст" />
+      <button type="submit">Додати</button>
+    </form>
+
+    <ul id="notes"></ul>
+    <p id="empty" hidden>Нотаток поки немає.</p>
+
+    <script type="module" src="./app.js"></script>
+  </body>
+</html>

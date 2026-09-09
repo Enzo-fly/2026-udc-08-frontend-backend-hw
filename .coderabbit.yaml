@@ -1,0 +1,189 @@
+# yaml-language-server: $schema=https://coderabbit.ai/integrations/schema.v2.json
+#
+# CodeRabbit config — auto-review of UDC Workshop 8 homework PRs.
+# Workshop: "Робота з фронтендом та бекендом".
+#
+# NOTE: every custom_checks `name` MUST stay under 50 characters. If any name
+# hits the limit the WHOLE file fails validation and CodeRabbit silently falls
+# back to defaults — reviews come back in English and no task grading runs.
+# Validate against the published schema before publishing.
+
+language: "uk-UA"
+tone_instructions: >
+  Ментор воркшопу UDC. Відповідай українською, доброзичливо але вимогливо.
+  Що пропущено — поясни що і чому. Статуси: ✅ зроблено, ⚠️ частково, ❌ пропущено.
+
+early_access: false
+
+reviews:
+  profile: "assertive"
+  request_changes_workflow: false
+  high_level_summary: true
+  high_level_summary_placeholder: "@coderabbitai summary"
+  poem: false
+  review_status: true
+  collapse_walkthrough: false
+  changed_files_summary: true
+  sequence_diagrams: false
+
+  auto_review:
+    enabled: true
+    drafts: true
+    auto_incremental_review: true
+    auto_pause_after_reviewed_commits: 0
+    base_branches:
+      - ".*"
+    ignore_title_keywords:
+      - "WIP"
+      - "[skip review]"
+    ignore_usernames:
+      - "dependabot[bot]"
+      - "renovate[bot]"
+      - "github-actions[bot]"
+
+  # ── File filters ──────────────────────────────────────────────
+  path_filters:
+    - "app/src/**"
+    - "app/public/**"
+    - "app/test/**"
+    - "docs/**"
+    - "AGENTS.md"
+    - "app/AGENTS.md"
+    - "CLAUDE.md"
+    - "!**/node_modules/**"
+    - "!**/dist/**"
+    - "!**/*.db"
+    - "!*.lock"
+    - "!**/package-lock.json"
+
+  # ── Path-specific review instructions ─────────────────────────
+  path_instructions:
+    - path: "app/src/app.js"
+      instructions: |
+        НАЙВАЖЛИВІШЕ в цій домашці — авторизація. Перевір КОЖЕН маршрут окремо:
+        чи звужує він вибірку за власником (напр. `WHERE id = ? AND user_id = ?`
+        або еквівалентна перевірка після читання), чи лише за id.
+
+        У СТАРТОВОМУ репо ендпоінт `GET /api/notes/:id` навмисно читає нотатку
+        лише за id, без перевірки власника — це засіяна вразливість (IDOR), і
+        Task C вимагає її знайти та полагодити. Якщо в дифі вона ВИПРАВЛЕНА —
+        це головний успіх роботи, відзнач це явно й позитивно. Якщо лишилась
+        невиправленою — познач як ❌ і поясни, що саме витікає (один користувач
+        читає чужу нотатку), не сварячи студента.
+
+        Також перевір новий ендпоінт архівування: власник, серверна валідація
+        вхідних даних, відсутність зайвих внутрішніх полів у відповіді.
+
+    - path: "app/test/**"
+      instructions: |
+        Task C вимагає тест, який СТАВИТЬ ПИТАННЯ АВТОРИЗАЦІЇ: один користувач
+        не має прочитати/змінити чуже. Перевір, що такий тест зʼявився і що він
+        справді падав би до фіксу (тобто перевіряє чужий ресурс, а не свій).
+        Дев'ять засіяних тестів мали лишитись зеленими. Тести лише на happy
+        path — саме та проблема, про яку воркшоп; познач як ⚠️.
+
+    - path: "app/public/**"
+      instructions: |
+        Task A — UI. Перевір доступність згенерованої розмітки: інтерактивний
+        елемент має бути справжньою `<button>` (а не `<div>` з обробником), мати
+        доступне імʼя (текст або aria-label), форма — повʼязані `<label>`.
+        Надлишкові ARIA-атрибути там, де вистачає семантичного елемента, —
+        варте зауваження. Збірку/бандлер додавати не мали.
+
+    - path: "app/src/db.js"
+      instructions: |
+        Task B — схема. Перевір, що зʼявилась ознака архіву і що зміна не
+        руйнівна для наявних даних. Сідові користувачі (Оля=1, Тарас=2) і
+        структура таблиць мали лишитись сумісними: на них спираються тести.
+
+    - path: "docs/ai-mistakes.md"
+      instructions: |
+        Task D. Перевір, що записи КОНКРЕТНІ: що просили, що агент видав, як
+        помітили, як полагодили — з посиланням на файл або поведінку. Загальні
+        фрази («іноді галюцинує») — ⚠️. Потрібно ≥3 записи. Висновок «нічого
+        не помітив» приймається ЛИШЕ якщо перелічено, що саме перевірялось.
+
+    - path: "docs/task-e-bonus.md"
+      instructions: |
+        Task E (bonus) — один із трьох шляхів, заповнений конкретно.
+        Необовʼязкове; відсутність файлу — не помилка.
+
+  # ── Pre-merge checks (grading) ────────────────────────────────
+  pre_merge_checks:
+    title:
+      mode: "warning"
+      requirements: >
+        PR title should follow: "WS8: <participant-name>".
+
+    description:
+      mode: "warning"
+
+    docstrings:
+      mode: "off"
+
+    custom_checks:
+      - mode: "warning"
+        name: "Task A — archive UI, accessible"
+        instructions: >
+          Static review only — do NOT execute anything. Check app/public/ gained
+          a control to archive/unarchive a note and a way to view archived ones.
+          Check the control is a real button element with an accessible name,
+          not a div with a click handler. No bundler or framework should have
+          been introduced. PASS if the UI exists and is accessible; FAIL if
+          missing or built with non-semantic markup.
+
+      - mode: "warning"
+        name: "Task B — API, schema, server validation"
+        instructions: >
+          Static review only. Check app/src/db.js gained an archived flag and
+          app/src/app.js gained an endpoint to toggle it, that input is
+          validated ON THE SERVER (not only in the UI), and that the response
+          does not expose internal fields the caller should not see. PASS if all
+          three hold; FAIL if validation exists only client-side.
+
+      - mode: "warning"
+        name: "Task C — seeded IDOR found and fixed"
+        instructions: >
+          Static review only. THE most important check. The starter repo ships a
+          deliberate flaw: GET /api/notes/:id reads a note by id with NO owner
+          check, so one user can read another user's note. Check the diff fixes
+          it — the query or handler must scope by the caller as well as the id.
+          Also check the participant's own new endpoint scopes by owner. PASS
+          only if both are owner-scoped; FAIL if the seeded endpoint still
+          fetches by id alone. When it IS fixed, say so positively — finding it
+          is the point of the task.
+
+      - mode: "warning"
+        name: "Task C — test asks the authz question"
+        instructions: >
+          Static review only — do NOT run tests. Check app/test/ gained a test
+          where one user attempts to read or modify ANOTHER user's note and is
+          refused. A test that only exercises the caller's own data does not
+          count, because the seeded suite already passes with the flaw open.
+          PASS if such a test exists; FAIL otherwise.
+
+      - mode: "warning"
+        name: "Task D — AI mistakes with evidence"
+        instructions: >
+          Static review only. Check docs/ai-mistakes.md has at least three
+          concrete entries, each naming what was asked, what the agent produced,
+          how it was noticed and how it was fixed, tied to a file or an observed
+          behaviour. Generic statements without evidence FAIL. A conclusion of
+          "nothing went wrong" PASSES only if it lists what was actually checked.
+
+      - mode: "warning"
+        name: "Task E — bonus (one path)"
+        instructions: >
+          Optional. If docs/task-e-bonus.md exists, check exactly ONE of the
+          three paths is completed with concrete detail and a conclusion.
+          Absence of the file is NOT a failure.
+
+      - mode: "warning"
+        name: "No secrets committed"
+        instructions: >
+          Static review only. Scan the diff for credentials, tokens, API keys or
+          a committed .env or .db file. PASS if none; FAIL immediately if one
+          appears, naming the file.
+
+chat:
+  auto_reply: true
