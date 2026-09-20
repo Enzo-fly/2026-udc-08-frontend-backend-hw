@@ -69,6 +69,7 @@ describe("GET /api/notes/:id", () => {
   it("returns the caller's own note", async () => {
     const res = await asOlya(request(app).get("/api/notes/1")).expect(200);
     expect(res.body.title).toBe("Список покупок");
+    expect(res.body.archived).toBe(false);
   });
 
   it("404s for a note that does not exist", async () => {

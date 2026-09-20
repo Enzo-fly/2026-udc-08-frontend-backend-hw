@@ -48,11 +48,11 @@ export function createApp(db) {
   app.get("/api/notes/:id", (req, res) => {
     const note = db
       .prepare(
-        "SELECT id, title, body, created_at FROM notes WHERE id = ? AND user_id = ?",
+        "SELECT id, title, body, created_at, archived FROM notes WHERE id = ? AND user_id = ?",
       )
       .get(Number(req.params.id), req.userId);
     if (!note) return res.status(404).json({ error: "not found" });
-    res.json(note);
+    res.json({ ...note, archived: Boolean(note.archived) });
   });
 
   // Create a note for the caller.

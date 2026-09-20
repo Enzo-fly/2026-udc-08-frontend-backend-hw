@@ -9,6 +9,8 @@ const form = document.querySelector("#new-note");
 const filterActive = document.querySelector("#filter-active");
 const filterArchived = document.querySelector("#filter-archived");
 const notesPanel = document.querySelector("#notes-panel");
+const filterTabs = [filterActive, filterArchived];
+const filterValues = ["active", "archived"];
 
 let filter = "active";
 let allNotes = [];
@@ -47,7 +49,6 @@ function renderNote(n) {
   const archive = document.createElement("button");
   archive.type = "button";
   archive.textContent = archived ? "Повернути з архіву" : "Архівувати";
-  archive.setAttribute("aria-pressed", archived ? "true" : "false");
   archive.addEventListener("click", async () => {
     await fetch(`/api/notes/${n.id}/archive`, {
       method: "PATCH",
@@ -70,17 +71,31 @@ function renderNote(n) {
   return li;
 }
 
+function filterIndex() {
+  return filter === "archived" ? 1 : 0;
+}
+
+function activateFilter(index, { moveFocus = false } = {}) {
+  filter = filterValues[index];
+  renderList();
+  if (moveFocus) filterTabs[index].focus();
+}
+
 function renderList() {
   const showingArchived = filter === "archived";
   const visible = allNotes.filter((note) => isArchived(note) === showingArchived);
   const archivedCount = allNotes.filter(isArchived).length;
   const activeCount = allNotes.length - archivedCount;
+  const selected = filterIndex();
 
   filterActive.setAttribute("aria-selected", showingArchived ? "false" : "true");
   filterArchived.setAttribute("aria-selected", showingArchived ? "true" : "false");
   notesPanel.setAttribute("aria-labelledby", showingArchived ? "filter-archived" : "filter-active");
   filterActive.textContent = `Активні (${activeCount})`;
   filterArchived.textContent = `Архів (${archivedCount})`;
+  filterTabs.forEach((tab, i) => {
+    tab.tabIndex = i === selected ? 0 : -1;
+  });
 
   list.replaceChildren(...visible.map(renderNote));
   empty.hidden = visible.length > 0;
@@ -110,13 +125,18 @@ form.addEventListener("submit", async (e) => {
   load();
 });
 
-filterActive.addEventListener("click", () => {
-  filter = "active";
-  renderList();
-});
-filterArchived.addEventListener("click", () => {
-  filter = "archived";
-  renderList();
+filterActive.addEventListener("click", () => activateFilter(0));
+filterArchived.addEventListener("click", () => activateFilter(1));
+document.querySelector("#filters").addEventListener("keydown", (e) => {
+  const last = filterTabs.length - 1;
+  let index = filterIndex();
+  if (e.key === "ArrowRight") index = index === last ? 0 : index + 1;
+  else if (e.key === "ArrowLeft") index = index === 0 ? last : index - 1;
+  else if (e.key === "Home") index = 0;
+  else if (e.key === "End") index = last;
+  else return;
+  e.preventDefault();
+  activateFilter(index, { moveFocus: true });
 });
 
 userSelect.addEventListener("change", () => {
